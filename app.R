@@ -10,7 +10,10 @@ library(tokenizers)
 library(mclust)
 
 # Bring in file with all the ML models & training
-source("ml.R")
+#source("ml.R")
+
+# Load the workspace
+load('shinyAppML_minimal.RData')
 
 
 ##### SHINY APP UI #####
@@ -83,9 +86,9 @@ server <- function(input, output) {
         
       }
       else if(input$txtrep == 'Ngrams'){
-        # tokenize for ngrams of n=2:4
+        # tokenize for ngrams of n=1:4
         newText <- newText |> tokens() |> 
-          tokens_ngrams(n = 2:4, concatenator = '.')
+          tokens_ngrams(n = 1:4, concatenator = '.')
         
         # Make zero df
         newData <- matrix(0, ncol = length(train.ngram.terms), 
@@ -95,9 +98,9 @@ server <- function(input, output) {
         
         # Fill in the values
         for(i in 1:ncol(newData)){
-          newdata2[1,i] <- grepl(ngrams[i], rownames(newdata2)[1])
-          newdata2[2,i] <- grepl(ngrams[i], rownames(newdata2)[2])
-          newdata2[3,i] <- grepl(ngrams[i], rownames(newdata2)[3])
+          newData[1,i] <- grepl(train.ngram.terms[i], rownames(newData)[1])
+          newData[2,i] <- grepl(train.ngram.terms[i], rownames(newData)[2])
+          newData[3,i] <- grepl(train.ngram.terms[i], rownames(newData)[3])
         }
         
         # Get prediction for the proper model
@@ -112,7 +115,17 @@ server <- function(input, output) {
       
       # render output text
       output$txtpred <- renderText({
-        paste(prediction[[1]])
+        if(length(prediction[[1]]) == 1){
+          paste(prediction[[1]])
+        }
+        else if(length(prediction[[1]]) > 1){
+          paste(names(which.max(table(prediction[[1]]))))
+        }
+        else{
+          paste("Cannot make a prediction.")
+        }
+        
+        
       })
     }
   })
